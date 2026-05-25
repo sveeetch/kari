@@ -226,8 +226,8 @@ function InvestorThesis() {
         </aside>
       </div>
       <div className="source-note">
-        Investor thesis from Kari source material; subject to investor criteria confirmation. Public
-        defence-spending context from Council of the EU and European Commission.
+        UAE investor thesis from Kari-provided source material; subject to investor criteria confirmation.
+        Public defence-spending context from Council of the EU and European Commission.
       </div>
     </SectionShell>
   );
@@ -391,7 +391,8 @@ function RiskControls() {
         <span>Control standard</span>
         <p>
           No transaction, exclusivity, technical transfer, protected information, or authority to
-          bind Dunlevy without the proper legal framework and board approval.
+          bind Dunlevy without the proper legal framework and board approval. Any next step is
+          subject to legal, export-control, and CFIUS review where applicable.
         </p>
       </div>
     </SectionShell>
