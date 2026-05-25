@@ -1,4 +1,5 @@
 outputs/
+dist/
+local-*.png
 .DS_Store
 node_modules/
-
