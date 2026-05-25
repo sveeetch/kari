@@ -15,6 +15,8 @@ npm install
 npm run dev
 ```
 
+Use left/right arrow keys or the on-screen controls to move through the six browser-based presentation slides.
+
 ## Production Build
 
 ```bash

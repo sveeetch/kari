@@ -46,45 +46,43 @@ const sources = [
 ];
 
 const sections = [
-  { id: "opening", eyebrow: "Executive opening", nav: "Opening" },
-  { id: "thesis", eyebrow: "Investor thesis", nav: "Thesis" },
-  { id: "fit", eyebrow: "First-fit target", nav: "Dunlevy fit" },
-  { id: "kari", eyebrow: "Intermediary layer", nav: "Kari / K2" },
-  { id: "controls", eyebrow: "Board controls", nav: "Controls" },
-  { id: "ask", eyebrow: "Board ask", nav: "30-day sprint" },
+  { id: "slide-1", eyebrow: "Executive opening", nav: "Opening" },
+  { id: "slide-2", eyebrow: "Investor thesis", nav: "Thesis" },
+  { id: "slide-3", eyebrow: "First-fit target", nav: "Dunlevy fit" },
+  { id: "slide-4", eyebrow: "Intermediary layer", nav: "Kari / K2" },
+  { id: "slide-5", eyebrow: "Board controls", nav: "Controls" },
+  { id: "slide-6", eyebrow: "Board ask", nav: "30-day sprint" },
 ];
 
-function useActiveSection() {
-  const [active, setActive] = useState(sections[0].id);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-        if (visible?.target?.id) setActive(visible.target.id);
-      },
-      { threshold: [0.32, 0.55, 0.78] },
-    );
-
-    sections.forEach(({ id }) => {
-      const node = document.getElementById(id);
-      if (node) observer.observe(node);
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  return active;
+function indexFromHash() {
+  const hash = window.location.hash.replace("#", "");
+  const index = sections.findIndex((section) => section.id === hash);
+  return index >= 0 ? index : 0;
 }
 
-function TopNav({ active }) {
-  const activeIndex = Math.max(0, sections.findIndex((section) => section.id === active));
+function useSlideIndex() {
+  const [activeIndex, setActiveIndex] = useState(indexFromHash);
 
+  useEffect(() => {
+    const syncFromHash = () => setActiveIndex(indexFromHash());
+    window.addEventListener("hashchange", syncFromHash);
+    return () => window.removeEventListener("hashchange", syncFromHash);
+  }, []);
+
+  return [activeIndex, setActiveIndex];
+}
+
+function useLockedBody() {
+  useEffect(() => {
+    document.body.classList.add("presentation-mode");
+    return () => document.body.classList.remove("presentation-mode");
+  }, []);
+}
+
+function TopNav({ activeIndex, onNavigate }) {
   return (
     <header className="topbar">
-      <a className="brand" href="#opening" aria-label="Open executive briefing">
+      <a className="brand" href="#slide-1" onClick={(event) => onNavigate(0, event)} aria-label="Open executive briefing">
         <span className="brand-mark">KO</span>
         <span>
           <strong>Kari Odermann / Dunlevy Aerospace</strong>
@@ -93,7 +91,12 @@ function TopNav({ active }) {
       </a>
       <nav className="navrail" aria-label="Briefing sections">
         {sections.map((section, index) => (
-          <a key={section.id} className={active === section.id ? "active" : ""} href={`#${section.id}`}>
+          <a
+            key={section.id}
+            className={activeIndex === index ? "active" : ""}
+            href={`#${section.id}`}
+            onClick={(event) => onNavigate(index, event)}
+          >
             <span>{String(index + 1).padStart(2, "0")}</span>
             {section.nav}
           </a>
@@ -146,7 +149,7 @@ function Corridor() {
 
 function ExecutiveOpening() {
   return (
-    <SectionShell id="opening" eyebrow="Executive opening" tone="hero">
+    <SectionShell id="slide-1" eyebrow="Executive opening" tone="hero">
       <div className="hero-grid access-hero">
         <div className="hero-copy">
           <p className="pretitle">Strategic Market Access and Deal Facilitation</p>
@@ -201,7 +204,7 @@ function InvestorThesis() {
 
   return (
     <SectionShell
-      id="thesis"
+      id="slide-2"
       eyebrow="Investor thesis"
       title="The investor thesis is specific: equity, capability access, and long-term localisation."
     >
@@ -244,7 +247,7 @@ function DunlevyFit() {
   ];
 
   return (
-    <SectionShell id="fit" eyebrow="First-fit target" title="Dunlevy is the logical first test of the investor thesis.">
+    <SectionShell id="slide-3" eyebrow="First-fit target" title="Dunlevy is the logical first test of the investor thesis.">
       <div className="fit-layout">
         <div className="proof-rail compact">
           <h3>Dunlevy brings real UAS credibility</h3>
@@ -305,7 +308,7 @@ function KariLayer() {
 
   return (
     <SectionShell
-      id="kari"
+      id="slide-4"
       eyebrow="Intermediary layer"
       title="Kari turns relationship access into a disciplined investment process."
     >
@@ -375,7 +378,7 @@ function RiskControls() {
 
   return (
     <SectionShell
-      id="controls"
+      id="slide-5"
       eyebrow="Board controls"
       title="The process is designed to protect time, reputation, and sensitive information."
     >
@@ -417,7 +420,7 @@ function BoardAsk() {
   ];
 
   return (
-    <SectionShell id="ask" eyebrow="Board ask" title="Approve a low-risk, board-controlled 30-day validation sprint.">
+    <SectionShell id="slide-6" eyebrow="Board ask" title="Approve a low-risk, board-controlled 30-day validation sprint.">
       <div className="roadmap">
         {steps.map(([title, body], index) => (
           <article key={title} className={index === steps.length - 1 ? "final" : ""}>
@@ -446,73 +449,61 @@ function BoardAsk() {
           </div>
         </div>
       </div>
-      <blockquote>
-        This is not a bet on a relationship; it is a controlled test of whether a trusted relationship
-        can produce strategic international opportunity.
-      </blockquote>
-      <details className="sources-drawer">
-        <summary>Sources and caveats</summary>
-        <div className="sources-layout">
-          {sources.map((source) => (
-            <a href={source.url} target="_blank" rel="noreferrer" className="source-card" key={source.url}>
-              <strong>{source.label}</strong>
-              <p>{source.note}</p>
-              <span>{source.url.replace("https://", "")}</span>
-            </a>
-          ))}
-        </div>
-        <div className="caveat-panel">
-          <h3>Boundary conditions</h3>
-          <p>
-            UAE investor thesis and process details are derived from Kari-provided source material
-            and remain subject to investor criteria confirmation. This briefing provides business
-            framing only and does not provide legal advice.
-          </p>
-        </div>
-      </details>
     </SectionShell>
   );
 }
 
 function App() {
-  const active = useActiveSection();
+  useLockedBody();
+  const [activeIndex, setActiveIndex] = useSlideIndex();
+  const [sourcesOpen, setSourcesOpen] = useState(false);
   const sectionIds = useMemo(() => sections.map((section) => section.id), []);
 
-  useEffect(() => {
-    if (window.location.hash) {
-      const target = document.querySelector(window.location.hash);
-      window.requestAnimationFrame(() => target?.scrollIntoView());
-    }
+  function goTo(index, event) {
+    event?.preventDefault();
+    const nextIndex = Math.max(0, Math.min(index, sectionIds.length - 1));
+    setActiveIndex(nextIndex);
+    window.history.replaceState(null, "", `#${sectionIds[nextIndex]}`);
+  }
 
+  useEffect(() => {
     function onKeyDown(event) {
       if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
-      const index = sectionIds.indexOf(active);
-      if (event.key === "ArrowDown" || event.key === "PageDown" || event.key === "ArrowRight") {
+      if (event.key === "Escape" && sourcesOpen) {
+        setSourcesOpen(false);
+        return;
+      }
+      if (/^[1-6]$/.test(event.key)) {
         event.preventDefault();
-        document.getElementById(sectionIds[Math.min(index + 1, sectionIds.length - 1)])?.scrollIntoView();
+        goTo(Number(event.key) - 1);
+        return;
+      }
+      if (event.key === "ArrowDown" || event.key === "PageDown" || event.key === "ArrowRight" || event.key === " ") {
+        event.preventDefault();
+        goTo(activeIndex + 1);
       }
       if (event.key === "ArrowUp" || event.key === "PageUp" || event.key === "ArrowLeft") {
         event.preventDefault();
-        document.getElementById(sectionIds[Math.max(index - 1, 0)])?.scrollIntoView();
+        goTo(activeIndex - 1);
       }
       if (event.key === "Home") {
         event.preventDefault();
-        document.getElementById(sectionIds[0])?.scrollIntoView();
+        goTo(0);
       }
       if (event.key === "End") {
         event.preventDefault();
-        document.getElementById(sectionIds[sectionIds.length - 1])?.scrollIntoView();
+        goTo(sectionIds.length - 1);
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active, sectionIds]);
+  }, [activeIndex, sectionIds, sourcesOpen]);
 
   return (
     <div className="app">
-      <TopNav active={active} />
-      <main>
+      <TopNav activeIndex={activeIndex} onNavigate={goTo} />
+      <main className="slide-stage" style={{ transform: `translate3d(${-activeIndex * 100}vw, 0, 0)` }}>
         <ExecutiveOpening />
         <InvestorThesis />
         <DunlevyFit />
@@ -520,6 +511,52 @@ function App() {
         <RiskControls />
         <BoardAsk />
       </main>
+      <div className="deck-controls" aria-label="Slide controls">
+        <button type="button" onClick={() => goTo(activeIndex - 1)} disabled={activeIndex === 0} aria-label="Previous slide">
+          Prev
+        </button>
+        <span>{activeIndex + 1} / {sections.length}</span>
+        <button
+          type="button"
+          onClick={() => goTo(activeIndex + 1)}
+          disabled={activeIndex === sections.length - 1}
+          aria-label="Next slide"
+        >
+          Next
+        </button>
+      </div>
+      <button type="button" className="sources-button" onClick={() => setSourcesOpen(true)}>
+        Sources & caveats
+      </button>
+      {sourcesOpen ? (
+        <div className="modal-backdrop" role="presentation" onClick={() => setSourcesOpen(false)}>
+          <aside className="sources-modal" role="dialog" aria-modal="true" aria-label="Sources and caveats" onClick={(event) => event.stopPropagation()}>
+            <button type="button" className="modal-close" onClick={() => setSourcesOpen(false)} aria-label="Close sources">
+              Close
+            </button>
+            <div className="eyebrow">Sources and caveats</div>
+            <h2>Source-backed, deliberately bounded claims.</h2>
+            <div className="sources-layout">
+              {sources.map((source) => (
+                <a href={source.url} target="_blank" rel="noreferrer" className="source-card" key={source.url}>
+                  <strong>{source.label}</strong>
+                  <p>{source.note}</p>
+                  <span>{source.url.replace("https://", "")}</span>
+                </a>
+              ))}
+            </div>
+            <div className="caveat-panel">
+              <h3>Boundary conditions</h3>
+              <p>
+                UAE investor thesis and process details are derived from Kari-provided source material
+                and remain subject to investor criteria confirmation. This briefing provides business
+                framing only and does not provide legal advice.
+              </p>
+              <p>Any next step is subject to legal, export-control, and CFIUS review where applicable.</p>
+            </div>
+          </aside>
+        </div>
+      ) : null}
     </div>
   );
 }
