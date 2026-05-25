@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
@@ -6,42 +6,52 @@ const sources = [
   {
     label: "CEPA - Kari Odermann profile",
     url: "https://cepa.org/author/dr-kari-hiepko-odermann/",
-    note: "Fellow; political analyst and communication specialist; 20+ years across security, development, and technical assistance.",
+    note: "CEPA Fellow; political analyst and communication specialist with 20+ years across security, development, and technical assistance.",
   },
   {
-    label: "K2 Communication - about Kari Odermann",
+    label: "K2 Communication - Kari Odermann",
     url: "https://k2.news/about",
-    note: "Sensitive political communication, European security and communication strategy, complex narratives made accessible.",
+    note: "Sensitive political communication; complex geopolitical topics translated into accessible narratives.",
   },
   {
     label: "Dunlevy Aerospace",
     url: "https://www.dunlevyaerospace.com/",
-    note: "North Dakota-based UAS company; 10+ years; airframes, curriculum, consulting; 250,000+ missions overseen.",
+    note: "North Dakota-based UAS company; 10+ years; airframes, curricula, consulting; 250,000+ missions overseen.",
   },
   {
-    label: "Northland directory - Matt Dunlevy",
+    label: "Northland - Matt Dunlevy",
     url: "https://www.northlandcollege.edu/directory/dunlevy-matt/",
     note: "Owner of Dunlevy Consulting and UAS entrepreneur in North Dakota, Minnesota, and internationally.",
   },
   {
-    label: "Council of the EU - defence in numbers",
+    label: "Council of the EU - Defence numbers",
     url: "https://www.consilium.europa.eu/en/policies/defence-numbers/",
-    note: "EU member state defence expenditure reached EUR 343B in 2024 and is expected to reach EUR 381B in 2025.",
+    note: "EU defence expenditure reached EUR 343B in 2024 and is expected at EUR 381B in 2025.",
   },
   {
     label: "European Commission - Readiness 2030 / SAFE",
     url: "https://defence-industry-space.ec.europa.eu/eu-defence-industry/white-paper-european-defence-readiness-2030_en",
-    note: "SAFE provides up to EUR 150B in loans for defence areas including missile defence, drones, and cyber security.",
+    note: "SAFE includes a EUR 150B loan instrument for areas including missile defence, drones, and cyber security.",
+  },
+  {
+    label: "U.S. Treasury - CFIUS guidance",
+    url: "https://home.treasury.gov/policy-issues/international/the-committee-on-foreign-investment-in-the-united-states-cfius/cfius-laws-and-guidance",
+    note: "Context for foreign investment review; this briefing does not provide legal advice.",
+  },
+  {
+    label: "Federal Register - Drone export controls context",
+    url: "https://www.federalregister.gov/documents/2026/01/21/2026-01059/streamlining-export-controls-for-drone-exports",
+    note: "Context for UAS export-control considerations; applicability depends on facts and counsel review.",
   },
 ];
 
 const sections = [
-  { id: "brief", eyebrow: "Board briefing", nav: "Brief" },
-  { id: "kari", eyebrow: "Chapter 1", nav: "Why Kari" },
-  { id: "europe", eyebrow: "Chapter 2", nav: "Why Europe" },
-  { id: "dunlevy", eyebrow: "Chapter 3", nav: "Dunlevy fit" },
-  { id: "pilot", eyebrow: "Chapter 4", nav: "Pilot" },
-  { id: "sources", eyebrow: "Appendix", nav: "Sources" },
+  { id: "opening", eyebrow: "Executive opening", nav: "Opening" },
+  { id: "thesis", eyebrow: "Investor thesis", nav: "Thesis" },
+  { id: "fit", eyebrow: "First-fit target", nav: "Dunlevy fit" },
+  { id: "kari", eyebrow: "Intermediary layer", nav: "Kari / K2" },
+  { id: "controls", eyebrow: "Board controls", nav: "Controls" },
+  { id: "ask", eyebrow: "Board ask", nav: "30-day sprint" },
 ];
 
 function useActiveSection() {
@@ -55,11 +65,11 @@ function useActiveSection() {
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
         if (visible?.target?.id) setActive(visible.target.id);
       },
-      { threshold: [0.35, 0.55, 0.75] },
+      { threshold: [0.32, 0.55, 0.78] },
     );
 
-    sections.forEach((section) => {
-      const node = document.getElementById(section.id);
+    sections.forEach(({ id }) => {
+      const node = document.getElementById(id);
       if (node) observer.observe(node);
     });
 
@@ -69,8 +79,34 @@ function useActiveSection() {
   return active;
 }
 
-function Icon({ type }) {
-  return <span className={`icon icon-${type}`} aria-hidden="true" />;
+function TopNav({ active }) {
+  const activeIndex = Math.max(0, sections.findIndex((section) => section.id === active));
+
+  return (
+    <header className="topbar">
+      <a className="brand" href="#opening" aria-label="Open executive briefing">
+        <span className="brand-mark">KO</span>
+        <span>
+          <strong>Kari Odermann / Dunlevy Aerospace</strong>
+          <small>Strategic market access briefing</small>
+        </span>
+      </a>
+      <nav className="navrail" aria-label="Briefing sections">
+        {sections.map((section, index) => (
+          <a key={section.id} className={active === section.id ? "active" : ""} href={`#${section.id}`}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            {section.nav}
+          </a>
+        ))}
+      </nav>
+      <div className="progress" aria-label={`Section ${activeIndex + 1} of ${sections.length}`}>
+        <span>{String(activeIndex + 1).padStart(2, "0")}</span>
+        <div className="progress-track">
+          <i style={{ width: `${((activeIndex + 1) / sections.length) * 100}%` }} />
+        </div>
+      </div>
+    </header>
+  );
 }
 
 function SectionShell({ id, eyebrow, title, children, tone = "standard" }) {
@@ -85,204 +121,132 @@ function SectionShell({ id, eyebrow, title, children, tone = "standard" }) {
   );
 }
 
-function TopNav({ active }) {
-  const activeIndex = Math.max(0, sections.findIndex((section) => section.id === active));
-
+function Corridor() {
   return (
-    <header className="topbar">
-      <a className="brand" href="#brief" aria-label="Open briefing introduction">
-        <span className="brand-mark">KO</span>
-        <span>
-          <strong>Kari Odermann / Dunlevy Aerospace</strong>
-          <small>Strategic pilot briefing</small>
-        </span>
-      </a>
-      <nav className="navrail" aria-label="Briefing chapters">
-        {sections.map((section, index) => (
-          <a key={section.id} className={section.id === active ? "active" : ""} href={`#${section.id}`}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            {section.nav}
-          </a>
-        ))}
-      </nav>
-      <div className="progress">
-        <span>{String(activeIndex + 1).padStart(2, "0")}</span>
-        <div className="progress-track">
-          <i style={{ width: `${((activeIndex + 1) / sections.length) * 100}%` }} />
-        </div>
+    <div className="corridor" aria-label="Strategic access corridor">
+      <div className="corridor-node">
+        <span>Source</span>
+        <strong>UAE capital</strong>
       </div>
-    </header>
+      <div className="corridor-path">
+        <i />
+        <b>equity-oriented market access</b>
+      </div>
+      <div className="corridor-node target">
+        <span>Target</span>
+        <strong>U.S. UAS capability</strong>
+      </div>
+      <div className="corridor-end">
+        <span>Long-term option set</span>
+        <strong>access | localisation | licensing</strong>
+      </div>
+    </div>
   );
 }
 
-function BriefIntro() {
+function ExecutiveOpening() {
   return (
-    <SectionShell id="brief" eyebrow="Board briefing" tone="hero">
-      <div className="hero-grid">
+    <SectionShell id="opening" eyebrow="Executive opening" tone="hero">
+      <div className="hero-grid access-hero">
         <div className="hero-copy">
-          <p className="pretitle">Strategic partnership memo converted into a web briefing</p>
-          <h1>A governed test of whether trust can produce measurable international opportunity.</h1>
+          <p className="pretitle">Strategic Market Access and Deal Facilitation</p>
+          <h1>UAE capital is seeking strategic access to U.S. drone capabilities.</h1>
           <p className="hero-lede">
-            This briefing frames a limited Kari Odermann / Dunlevy Aerospace pilot for board review:
-            strategic enough to justify exploration, controlled enough to protect time, governance, and
-            compliance posture.
+            A board-controlled validation sprint can test whether Dunlevy Aerospace is a credible
+            first-fit opportunity without approving a transaction, technical transfer, or
+            open-ended commitment.
           </p>
           <div className="decision-strip">
             <div>
-              <span>Recommended action</span>
-              <strong>Approve a 60-90 day exploratory pilot</strong>
+              <span>Opportunity type</span>
+              <strong>Equity exposure to U.S. drone / defence-security companies</strong>
             </div>
             <div>
-              <span>Operating principle</span>
-              <strong>Opportunity qualification before commitment</strong>
+              <span>Strategic objective</span>
+              <strong>Access, positioning, and potential localisation pathways</strong>
             </div>
             <div>
-              <span>Control standard</span>
-              <strong>No binding authority or technical transfer</strong>
+              <span>Board posture</span>
+              <strong>Explore only through a controlled, compliance-aware process</strong>
             </div>
           </div>
         </div>
-        <div className="brief-card" aria-label="Board decision frame">
+        <aside className="brief-card thesis-card">
           <div className="brief-card-top">
-            <span>Board question</span>
-            <b>Is this worth disciplined exploration?</b>
+            <span>Board decision frame</span>
+            <b>Approve validation, not a deal.</b>
           </div>
-          <div className="matrix">
-            <div>Governance</div>
-            <div>Board gates</div>
-            <div>Upside</div>
-            <div>International pathways</div>
-            <div>Risk</div>
-            <div>Export-control review</div>
-            <div>Time</div>
-            <div>Kari filters first</div>
-          </div>
+          <Corridor />
           <p>
-            The case is not personal trust alone. It is whether a trusted relationship can be
-            converted into a measured, board-visible market-development process.
+            The question is whether a specific investor thesis can be tested safely, quickly, and
+            with enough discipline to justify deeper diligence.
           </p>
-        </div>
-      </div>
-    </SectionShell>
-  );
-}
-
-function KariChapter() {
-  const pillars = [
-    ["shield", "Security & political communication", "20+ years working across security, development, technical assistance, and sensitive political contexts."],
-    ["network", "International networks", "Experience across Europe, North America, Africa, Asia, Ukraine, and policy-adjacent forums."],
-    ["translate", "Policy / investor translation", "Frames complex UAS and security relevance in language European stakeholders can evaluate."],
-  ];
-
-  return (
-    <SectionShell
-      id="kari"
-      eyebrow="Chapter 1 - Why Kari, why now"
-      title="Kari Odermann is a credible bridge, not a generic consultant."
-    >
-      <div className="two-column">
-        <aside className="identity-panel">
-          <div className="portrait-block">
-            <span>Kari</span>
-            <span>Odermann</span>
-          </div>
-          <dl>
-            <div>
-              <dt>Public profile</dt>
-              <dd>CEPA Fellow; political analyst and communication specialist</dd>
-            </div>
-            <div>
-              <dt>Relevant domain</dt>
-              <dd>Security, democratic resilience, counter-disinformation, geopolitical communication</dd>
-            </div>
-            <div>
-              <dt>Strategic value</dt>
-              <dd>Credibility and qualification, not a promise of access</dd>
-            </div>
-          </dl>
         </aside>
-        <div className="pillar-stack">
-          {pillars.map(([icon, titleText, body]) => (
-            <article className="pillar" key={titleText}>
-              <Icon type={icon} />
-              <div>
-                <h3>{titleText}</h3>
-                <p>{body}</p>
-              </div>
-            </article>
-          ))}
-          <blockquote>
-            Kari gives Dunlevy Aerospace a credible front door into European security, policy, and
-            investor conversations that would otherwise take years to build.
-          </blockquote>
-        </div>
       </div>
-    </SectionShell>
-  );
-}
-
-function EuropeChapter() {
-  const nodes = ["Investors", "Policy leaders", "Defence industry", "Dual-use tech", "Ukraine / eastern flank", "Security forums", "Compliance"];
-
-  return (
-    <SectionShell
-      id="europe"
-      eyebrow="Chapter 2 - Why Europe is strategically relevant"
-      title="European defence demand is being reshaped around urgency, resilience, and dual-use technology."
-    >
-      <div className="market-layout">
-        <div className="network-map">
-          <div className="network-core">
-            <span>EU / NATO</span>
-            <strong>security ecosystem</strong>
-          </div>
-          {nodes.map((node, index) => (
-            <div className={`network-node node-${index + 1}`} key={node}>
-              {node}
-            </div>
-          ))}
-        </div>
-        <div className="metric-column">
-          <article>
-            <span>2024</span>
-            <strong>EUR 343B</strong>
-            <p>EU member state defence expenditure reached in 2024.</p>
-          </article>
-          <article>
-            <span>2025E</span>
-            <strong>EUR 381B</strong>
-            <p>Expected EU member state defence expenditure in 2025.</p>
-          </article>
-          <article className="gold">
-            <span>SAFE</span>
-            <strong>EUR 150B</strong>
-            <p>Loan instrument for areas including missile defence, drones, and cyber security.</p>
-          </article>
-        </div>
-      </div>
-      <p className="chapter-note">
-        Security forums are useful here because they can expose serious partners, policy signals,
-        investment appetite, and regulatory constraints before Dunlevy commits resources.
-      </p>
       <blockquote>
-        Kari’s network is valuable because Europe’s security conversation is now becoming a
-        procurement and investment conversation.
+        This is not procurement interest; it is strategic capital seeking durable access to
+        defense-relevant UAS capability.
       </blockquote>
     </SectionShell>
   );
 }
 
-function DunlevyChapter() {
-  const routes = ["Investors", "Strategic partners", "Joint ventures", "Training", "Licensing", "Components", "Dual-use applications", "Advisory"];
+function InvestorThesis() {
+  const cards = [
+    ["Equity access", "The strategy prioritises equity stakes over simple subcontracting or transactional sales."],
+    ["U.S. UAS capability", "American drone companies are the primary target because IP, compliance pathways, and defence ecosystem timing matter."],
+    ["Defense/security relevance", "Investors are looking for capability, positioning, and sovereignty value, not commodity procurement."],
+    ["Localisation pathway", "Manufacturing, licensing, and industrial access can increase long-term strategic value if diligence supports it."],
+  ];
 
   return (
     <SectionShell
-      id="dunlevy"
-      eyebrow="Chapter 3 - Why this matters to Dunlevy Aerospace"
-      title="A focused intermediary can open international pathways without distracting the core team."
+      id="thesis"
+      eyebrow="Investor thesis"
+      title="The investor thesis is specific: equity, capability access, and long-term localisation."
     >
-      <div className="funnel-layout">
-        <div className="proof-rail">
+      <div className="thesis-layout">
+        <div className="thesis-grid">
+          {cards.map(([title, body], index) => (
+            <article className="thesis-tile" key={title}>
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
+        </div>
+        <aside className="market-signal">
+          <span>External market signal</span>
+          <strong>EUR 343B</strong>
+          <p>EU member-state defence expenditure in 2024.</p>
+          <strong>EUR 381B</strong>
+          <p>Expected EU member-state defence expenditure in 2025.</p>
+          <strong className="gold">EUR 150B</strong>
+          <p>SAFE instrument includes drones, missile defence, and cyber security.</p>
+        </aside>
+      </div>
+      <div className="source-note">
+        Investor thesis from Kari source material; subject to investor criteria confirmation. Public
+        defence-spending context from Council of the EU and European Commission.
+      </div>
+    </SectionShell>
+  );
+}
+
+function DunlevyFit() {
+  const fitRows = [
+    ["U.S.-based UAS company", "North Dakota-based UAS company with U.S. aerospace and government ecosystem relevance."],
+    ["Defense/security relevance", "UAS manufacturing, design, integration, counter-UAS, consulting, and mission-focused systems."],
+    ["IP / technical capability", "UAS airframe development and mission-specific platform experience; candidate for deeper IP review."],
+    ["Regulatory credibility", "Fit should be tested through NDA-led materials review and compliance screening before sensitive disclosure."],
+    ["Defense ecosystem credentials", "Government and private-sector users; federal grants and programs experience noted by Dunlevy Aerospace."],
+    ["Strategic growth pathway", "Potential equity, licensing, training, components, or market-entry pathways can be assessed without commitment."],
+  ];
+
+  return (
+    <SectionShell id="fit" eyebrow="First-fit target" title="Dunlevy is the logical first test of the investor thesis.">
+      <div className="fit-layout">
+        <div className="proof-rail compact">
           <h3>Dunlevy brings real UAS credibility</h3>
           <div className="proof-grid">
             <div>
@@ -295,127 +259,222 @@ function DunlevyChapter() {
             </div>
             <div>
               <strong>Airframes + curricula</strong>
-              <span>manufacturing, training, consulting, and integration capability</span>
+              <span>development, training, consulting, and integration capability</span>
             </div>
           </div>
-          <div className="route-cloud">
-            {routes.map((route) => (
-              <span key={route}>{route}</span>
-            ))}
+          <p>
+            This is an initial-fit argument, not a claim that a transaction is ready. The first step
+            is to test alignment against investor criteria and compliance constraints.
+          </p>
+        </div>
+        <div className="fit-matrix">
+          <div className="fit-head">
+            <span>Investor criteria</span>
+            <span>Dunlevy relevance</span>
           </div>
-        </div>
-        <div className="funnel">
-          <div>European security demand</div>
-          <div>Qualified investor / partner targets</div>
-          <div>Compliance / risk screen</div>
-          <div>Board-ready opportunities</div>
-        </div>
-      </div>
-      <div className="risk-band">
-        <span>Risk controls</span>
-        <p>
-          Subject to export-control and compliance review. No technical transfer or binding
-          commitment without legal and board approval. International opportunity qualification,
-          not a promise of capital.
-        </p>
-      </div>
-      <blockquote>
-        Kari can help Dunlevy Aerospace find the right international doors before the company
-        commits serious time, capital, or operational bandwidth.
-      </blockquote>
-    </SectionShell>
-  );
-}
-
-function PilotChapter() {
-  const steps = ["Trust advantage", "Defined scope", "Board gates", "Measurable outputs", "Next-stage decision"];
-  const deliverables = [
-    "Map 10-15 qualified international investor / strategic partner targets.",
-    "Identify 3-5 relevant European security conference or network opportunities.",
-    "Produce a preliminary compliance / risk checklist.",
-    "Recommend priority markets and next-step partnership structure.",
-    "Provide a board update with a go / no-go recommendation.",
-  ];
-  const concerns = [
-    ["Conflict of interest", "Written scope, disclosure, board approval gates, and no authority to bind the company."],
-    ["Export controls / dual-use risk", "Early legal and compliance review before technical, customer, investor, or partner discussions."],
-    ["Time drain on Matt", "Kari filters first; Matt enters only qualified conversations."],
-    ["Europe-first supplier bias", "Broader pathways: joint ventures, training, licensing, components, consulting, strategic investors, and market-entry partnerships."],
-    ["Overpromising access", "Frame the work as opportunity qualification, not assured contracts or capital."],
-  ];
-
-  return (
-    <SectionShell
-      id="pilot"
-      eyebrow="Chapter 4 - Recommended pilot"
-      title="A trusted relationship, structured as a low-risk strategic pilot."
-    >
-      <div className="pilot-flow">
-        {steps.map((step, index) => (
-          <div key={step} className={index === steps.length - 1 ? "final" : ""}>
-            <span>{String(index + 1).padStart(2, "0")}</span>
-            <strong>{step}</strong>
-          </div>
-        ))}
-      </div>
-      <div className="pilot-grid">
-        <div>
-          <h3>Recommended 60-90 day deliverables</h3>
-          <ol>
-            {deliverables.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ol>
-        </div>
-        <div className="concerns">
-          <h3>Board concerns pre-empted</h3>
-          {concerns.map(([summary, detail]) => (
-            <details key={summary}>
-              <summary>{summary}</summary>
-              <p>{detail}</p>
-            </details>
+          {fitRows.map(([criteria, relevance]) => (
+            <div className="fit-row" key={criteria}>
+              <strong>{criteria}</strong>
+              <p>{relevance}</p>
+            </div>
           ))}
         </div>
       </div>
       <blockquote>
-        This is not a bet on a relationship; it is a controlled test of whether that relationship
-        can produce strategic international opportunity.
+        Dunlevy is not simply a contact in the network; it is the logical first test of the investor thesis.
       </blockquote>
     </SectionShell>
   );
 }
 
-function SourcesChapter() {
+function KariLayer() {
+  const without = [
+    "Weak or misaligned approaches",
+    "Unclear expectations",
+    "Premature disclosure risk",
+    "Reputational risk",
+    "Time drain on Matt",
+  ];
+  const withKari = [
+    "Access to relevant stakeholders",
+    "Preliminary filtering",
+    "Credible first contact",
+    "NDA-led sequencing",
+    "Continuity across jurisdictions",
+  ];
+
   return (
-    <SectionShell id="sources" eyebrow="Appendix - sources and caveats" title="Source-backed, deliberately bounded claims.">
-      <div className="sources-layout">
-        {sources.map((source) => (
-          <a href={source.url} target="_blank" rel="noreferrer" className="source-card" key={source.url}>
-            <strong>{source.label}</strong>
-            <p>{source.note}</p>
-            <span>{source.url.replace("https://", "")}</span>
-          </a>
+    <SectionShell
+      id="kari"
+      eyebrow="Intermediary layer"
+      title="Kari turns relationship access into a disciplined investment process."
+    >
+      <div className="comparison-layout">
+        <div className="comparison-column weak">
+          <h3>Without intermediary layer</h3>
+          {without.map((item) => (
+            <div key={item}>{item}</div>
+          ))}
+        </div>
+        <div className="process-core">
+          <span>Market access process</span>
+          <strong>Access - filter - position - NDA - verify - assess fit</strong>
+          <p>
+            Kari’s role is access, filtering, legitimacy, coordination, and expectation management
+            before sensitive information is exposed.
+          </p>
+        </div>
+        <div className="comparison-column strong">
+          <h3>With Kari / K2</h3>
+          {withKari.map((item) => (
+            <div key={item}>{item}</div>
+          ))}
+        </div>
+      </div>
+      <div className="credibility-strip">
+        <span>Credibility base</span>
+        <p>
+          CEPA Fellow; founder of K2 Communication; political analyst and communication specialist
+          with security, political communication, democratic resilience, and international advisory experience.
+        </p>
+      </div>
+      <blockquote>
+        Kari’s role is the difference between a personal introduction and a board-safe market access process.
+      </blockquote>
+    </SectionShell>
+  );
+}
+
+function RiskControls() {
+  const concerns = [
+    [
+      "Conflict of interest",
+      "The relationship creates trust, but any engagement should be governed by written scope, disclosure, board gates, and no authority to bind the company.",
+    ],
+    [
+      "Export controls / dual-use risk",
+      "No protected technical, contractual, or export-controlled material should be shared without legal framework, NDA, and export-control review.",
+    ],
+    [
+      "CFIUS / foreign investment review",
+      "Foreign investment implications should be screened early and remain subject to legal, export-control, and CFIUS review where applicable.",
+    ],
+    [
+      "Time drain on Matt",
+      "Kari filters first; Matt joins only qualified, board-relevant conversations with a defined agenda.",
+    ],
+    [
+      "Overpromising investor access",
+      "The framing is opportunity qualification and process facilitation, not assured capital, contracts, or government outcomes.",
+    ],
+    [
+      "Procurement-policy confusion",
+      "The current focus is investment, not procurement; any adjacent government-facing activity would require formal structure and legal review.",
+    ],
+  ];
+
+  return (
+    <SectionShell
+      id="controls"
+      eyebrow="Board controls"
+      title="The process is designed to protect time, reputation, and sensitive information."
+    >
+      <div className="controls-grid">
+        {concerns.map(([summary, detail]) => (
+          <details key={summary} open={summary === "Conflict of interest" || summary === "Export controls / dual-use risk"}>
+            <summary>{summary}</summary>
+            <p>{detail}</p>
+          </details>
         ))}
       </div>
-      <div className="caveat-panel">
-        <h3>Boundary conditions</h3>
+      <div className="risk-band">
+        <span>Control standard</span>
         <p>
-          This briefing does not imply NATO, EU, government, procurement, investor, or contract
-          access. It recommends a governed qualification process with legal and board review before
-          commitments, technical-transfer discussions, or resource allocation beyond the pilot.
-        </p>
-        <p>
-          Naming note: CEPA currently references KII Communication, while Kari’s own site uses K2
-          Communication. This briefing avoids making the naming issue a core proof point.
+          No transaction, exclusivity, technical transfer, protected information, or authority to
+          bind Dunlevy without the proper legal framework and board approval.
         </p>
       </div>
+    </SectionShell>
+  );
+}
+
+function BoardAsk() {
+  const steps = [
+    ["Confirm investor criteria", "Define priorities, fit standards, and disqualifiers."],
+    ["Execute NDA", "Create framework before company materials or sensitive information."],
+    ["Initial qualification call", "Assess fit with Matt involved only when the conversation is prepared."],
+    ["Review against criteria", "Cap table, equity availability, IP, credentials, growth plan, and compliance path."],
+    ["Decision gate", "Deepen diligence, stop, or widen the pipeline."],
+  ];
+  const deliverables = [
+    "Investor criteria summary",
+    "Initial fit assessment",
+    "Risk / compliance checklist",
+    "Required company materials list",
+    "Go / no-go recommendation",
+    "Board update after validation period",
+  ];
+
+  return (
+    <SectionShell id="ask" eyebrow="Board ask" title="Approve a low-risk, board-controlled 30-day validation sprint.">
+      <div className="roadmap">
+        {steps.map(([title, body], index) => (
+          <article key={title} className={index === steps.length - 1 ? "final" : ""}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{title}</strong>
+            <p>{body}</p>
+          </article>
+        ))}
+      </div>
+      <div className="ask-grid">
+        <div className="approval-box">
+          <h3>The board is asked to approve</h3>
+          <p>A controlled first-step validation process.</p>
+          <h3>The board is not approving</h3>
+          <p>
+            A transaction, exclusivity, authority to bind, technical information transfer, or
+            long-term budget commitment.
+          </p>
+        </div>
+        <div className="deliverables">
+          <h3>30-day outputs</h3>
+          <div>
+            {deliverables.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <blockquote>
+        This is not a bet on a relationship; it is a controlled test of whether a trusted relationship
+        can produce strategic international opportunity.
+      </blockquote>
+      <details className="sources-drawer">
+        <summary>Sources and caveats</summary>
+        <div className="sources-layout">
+          {sources.map((source) => (
+            <a href={source.url} target="_blank" rel="noreferrer" className="source-card" key={source.url}>
+              <strong>{source.label}</strong>
+              <p>{source.note}</p>
+              <span>{source.url.replace("https://", "")}</span>
+            </a>
+          ))}
+        </div>
+        <div className="caveat-panel">
+          <h3>Boundary conditions</h3>
+          <p>
+            UAE investor thesis and process details are derived from Kari-provided source material
+            and remain subject to investor criteria confirmation. This briefing provides business
+            framing only and does not provide legal advice.
+          </p>
+        </div>
+      </details>
     </SectionShell>
   );
 }
 
 function App() {
   const active = useActiveSection();
-  const containerRef = useRef(null);
   const sectionIds = useMemo(() => sections.map((section) => section.id), []);
 
   useEffect(() => {
@@ -444,20 +503,21 @@ function App() {
         document.getElementById(sectionIds[sectionIds.length - 1])?.scrollIntoView();
       }
     }
+
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [active, sectionIds]);
 
   return (
-    <div className="app" ref={containerRef}>
+    <div className="app">
       <TopNav active={active} />
       <main>
-        <BriefIntro />
-        <KariChapter />
-        <EuropeChapter />
-        <DunlevyChapter />
-        <PilotChapter />
-        <SourcesChapter />
+        <ExecutiveOpening />
+        <InvestorThesis />
+        <DunlevyFit />
+        <KariLayer />
+        <RiskControls />
+        <BoardAsk />
       </main>
     </div>
   );
