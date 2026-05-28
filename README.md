@@ -17,6 +17,8 @@ npm run dev
 
 Use left/right arrow keys or the on-screen controls to move through the six browser-based presentation slides.
 
+The board-ready condensed deck is available at `/deck` and uses the same controls across four full-screen slides.
+
 ## Production Build
 
 ```bash

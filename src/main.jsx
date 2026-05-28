@@ -45,7 +45,7 @@ const sources = [
   },
 ];
 
-const sections = [
+const fullSections = [
   { id: "slide-1", eyebrow: "Executive opening", nav: "Opening" },
   { id: "slide-2", eyebrow: "Investor thesis", nav: "Thesis" },
   { id: "slide-3", eyebrow: "First-fit target", nav: "Dunlevy fit" },
@@ -54,20 +54,27 @@ const sections = [
   { id: "slide-6", eyebrow: "Board ask", nav: "30-day sprint" },
 ];
 
-function indexFromHash() {
+const deckSections = [
+  { id: "slide-1", eyebrow: "The opportunity", nav: "Opportunity" },
+  { id: "slide-2", eyebrow: "Why Dunlevy", nav: "Dunlevy" },
+  { id: "slide-3", eyebrow: "Why Kari / K2", nav: "Kari / K2" },
+  { id: "slide-4", eyebrow: "Board ask", nav: "Board ask" },
+];
+
+function indexFromHash(sections) {
   const hash = window.location.hash.replace("#", "");
   const index = sections.findIndex((section) => section.id === hash);
   return index >= 0 ? index : 0;
 }
 
-function useSlideIndex() {
-  const [activeIndex, setActiveIndex] = useState(indexFromHash);
+function useSlideIndex(sections) {
+  const [activeIndex, setActiveIndex] = useState(() => indexFromHash(sections));
 
   useEffect(() => {
-    const syncFromHash = () => setActiveIndex(indexFromHash());
+    const syncFromHash = () => setActiveIndex(indexFromHash(sections));
     window.addEventListener("hashchange", syncFromHash);
     return () => window.removeEventListener("hashchange", syncFromHash);
-  }, []);
+  }, [sections]);
 
   return [activeIndex, setActiveIndex];
 }
@@ -79,14 +86,14 @@ function useLockedBody() {
   }, []);
 }
 
-function TopNav({ activeIndex, onNavigate }) {
+function TopNav({ activeIndex, onNavigate, sections, isDeck }) {
   return (
     <header className="topbar">
       <a className="brand" href="#slide-1" onClick={(event) => onNavigate(0, event)} aria-label="Open executive briefing">
         <span className="brand-mark">KO</span>
         <span>
           <strong>Kari Odermann / Dunlevy Aerospace</strong>
-          <small>Strategic market access briefing</small>
+          <small>{isDeck ? "4-slide board deck" : "Strategic market access briefing"}</small>
         </span>
       </a>
       <nav className="navrail" aria-label="Briefing sections">
@@ -453,11 +460,178 @@ function BoardAsk() {
   );
 }
 
+function DeckOpportunity() {
+  const pillars = [
+    ["Equity access", "Investment-first thesis; not a procurement-first approach."],
+    ["U.S. UAS / defense-security capability", "Priority target profile is U.S. drone capability with credible technical and regulatory posture."],
+    ["Localisation / licensing potential", "Long-term option set may include access, localisation, and manufacturing or licensing pathways."],
+  ];
+
+  return (
+    <SectionShell id="slide-1" eyebrow="The opportunity" tone="hero">
+      <div className="deck-hero">
+        <div>
+          <p className="pretitle">Investor thesis to validate</p>
+          <h1>UAE capital is seeking strategic access to U.S. drone capabilities.</h1>
+          <p className="hero-lede">
+            UAE-based investors are seeking equity exposure to U.S. drone / defense-security
+            companies. This is about strategic access, not simple procurement.
+          </p>
+        </div>
+        <aside className="brief-card">
+          <div className="brief-card-top">
+            <span>Board framing</span>
+            <b>Validate the thesis before committing resources.</b>
+          </div>
+          <p>
+            Dunlevy is being considered as the first test case because it sits in the relevant UAS space.
+          </p>
+        </aside>
+      </div>
+      <div className="deck-pillars">
+        {pillars.map(([title, body], index) => (
+          <article key={title}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <h3>{title}</h3>
+            <p>{body}</p>
+          </article>
+        ))}
+      </div>
+      <div className="source-note">
+        Kari-provided source material; subject to investor criteria confirmation.
+      </div>
+      <blockquote>
+        This is not procurement interest; it is strategic capital seeking durable access to defense-relevant UAS capability.
+      </blockquote>
+    </SectionShell>
+  );
+}
+
+function DeckDunlevyFit() {
+  const rows = [
+    ["U.S.-based UAS company", "North Dakota / U.S. UAS ecosystem"],
+    ["Technical / operational credibility", "10+ years in UAS"],
+    ["Demonstrated mission experience", "250,000+ UAS missions overseen"],
+    ["Training / integration capability", "UAS curricula, consulting, airframe development"],
+    ["Strategic growth pathway", "Fit to validate before wider pipeline"],
+  ];
+
+  return (
+    <SectionShell id="slide-2" eyebrow="Why Dunlevy" title="Dunlevy is the logical first test of the investor thesis.">
+      <div className="deck-fit-layout">
+        <div className="fit-matrix">
+          <div className="fit-head">
+            <span>Investor thesis needs</span>
+            <span>Dunlevy relevance</span>
+          </div>
+          {rows.map(([need, relevance]) => (
+            <div className="fit-row" key={need}>
+              <strong>{need}</strong>
+              <p>{relevance}</p>
+            </div>
+          ))}
+        </div>
+        <aside className="proof-rail compact">
+          <h3>Initial-fit logic</h3>
+          <p>
+            Dunlevy is strong enough to test the thesis before widening the pipeline. This is not a
+            claim that a transaction is ready.
+          </p>
+        </aside>
+      </div>
+      <blockquote>
+        Dunlevy is not simply a contact in the network; it is the logical first test of the investor thesis.
+      </blockquote>
+    </SectionShell>
+  );
+}
+
+function DeckKariLayer() {
+  const without = ["Poor targeting", "Unclear expectations", "Premature disclosure risk", "Reputational risk", "Matt's time wasted"];
+  const withKari = ["Qualified access", "Credible first contact", "NDA-led sequencing", "Fit screening", "Board-safe next steps"];
+
+  return (
+    <SectionShell id="slide-3" eyebrow="Why Kari / K2" title="Kari turns relationship access into a disciplined investment process.">
+      <div className="comparison-layout deck-comparison">
+        <div className="comparison-column weak">
+          <h3>Without Kari</h3>
+          {without.map((item) => (
+            <div key={item}>{item}</div>
+          ))}
+        </div>
+        <div className="process-core">
+          <span>Process layer</span>
+          <strong>Access - filter - NDA - verify - board-safe next step</strong>
+          <p>
+            Kari’s value is structuring access, filtering misalignment, protecting reputations, and
+            managing the cross-border process before sensitive information is exposed.
+          </p>
+        </div>
+        <div className="comparison-column strong">
+          <h3>With Kari / K2</h3>
+          {withKari.map((item) => (
+            <div key={item}>{item}</div>
+          ))}
+        </div>
+      </div>
+      <div className="credibility-strip">
+        <span>Credibility base</span>
+        <p>CEPA Fellow; founder of K2 Communication; political analyst and communication specialist in high-trust political/security environments.</p>
+      </div>
+      <blockquote>
+        Kari’s role is the difference between a personal introduction and a board-safe market access process.
+      </blockquote>
+    </SectionShell>
+  );
+}
+
+function DeckBoardAsk() {
+  const steps = [
+    ["Confirm investor criteria", "Define priorities"],
+    ["NDA / legal guardrails", "Set framework"],
+    ["Initial fit call", "Prepared conversation"],
+    ["Qualification review", "Screen against criteria"],
+    ["Board update", "Deepen, stop, or widen"],
+  ];
+
+  return (
+    <SectionShell id="slide-4" eyebrow="Board ask" title="Approve a low-risk, board-controlled 30-day validation sprint.">
+      <div className="roadmap deck-roadmap">
+        {steps.map(([title, body], index) => (
+          <article key={title} className={index === steps.length - 1 ? "final" : ""}>
+            <span>{String(index + 1).padStart(2, "0")}</span>
+            <strong>{title}</strong>
+            <p>{body}</p>
+          </article>
+        ))}
+      </div>
+      <div className="ask-grid deck-ask-grid">
+        <div className="approval-box">
+          <h3>The board is asked to approve</h3>
+          <p>A controlled first-step exploration and board-gated validation process.</p>
+          <h3>The board is not approving</h3>
+          <p>A transaction, exclusivity, authority to bind, technical disclosure, or open-ended commitment.</p>
+        </div>
+        <div className="approval-box">
+          <h3>Required controls</h3>
+          <p>
+            Kari filters first; no protected technical or contractual material without NDA/legal
+            framework; board receives a go / no-go recommendation.
+          </p>
+          <p className="compliance-line">Subject to legal, export-control, and CFIUS review where applicable.</p>
+        </div>
+      </div>
+    </SectionShell>
+  );
+}
+
 function App() {
   useLockedBody();
-  const [activeIndex, setActiveIndex] = useSlideIndex();
+  const isDeck = window.location.pathname.replace(/\/+$/, "") === "/deck";
+  const activeSections = isDeck ? deckSections : fullSections;
+  const [activeIndex, setActiveIndex] = useSlideIndex(activeSections);
   const [sourcesOpen, setSourcesOpen] = useState(false);
-  const sectionIds = useMemo(() => sections.map((section) => section.id), []);
+  const sectionIds = useMemo(() => activeSections.map((section) => section.id), [activeSections]);
 
   function goTo(index, event) {
     event?.preventDefault();
@@ -475,7 +649,8 @@ function App() {
       }
       if (/^[1-6]$/.test(event.key)) {
         event.preventDefault();
-        goTo(Number(event.key) - 1);
+        const requested = Number(event.key) - 1;
+        if (requested < activeSections.length) goTo(requested);
         return;
       }
       if (event.key === "ArrowDown" || event.key === "PageDown" || event.key === "ArrowRight" || event.key === " ") {
@@ -498,28 +673,42 @@ function App() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [activeIndex, sectionIds, sourcesOpen]);
+  }, [activeIndex, sectionIds, sourcesOpen, activeSections.length]);
 
   return (
-    <div className="app">
-      <TopNav activeIndex={activeIndex} onNavigate={goTo} />
-      <main className="slide-stage" style={{ transform: `translate3d(${-activeIndex * 100}vw, 0, 0)` }}>
-        <ExecutiveOpening />
-        <InvestorThesis />
-        <DunlevyFit />
-        <KariLayer />
-        <RiskControls />
-        <BoardAsk />
+    <div className={`app ${isDeck ? "deck-route" : "briefing-route"}`}>
+      <TopNav activeIndex={activeIndex} onNavigate={goTo} sections={activeSections} isDeck={isDeck} />
+      <main
+        className="slide-stage"
+        style={{ width: `${activeSections.length * 100}vw`, transform: `translate3d(${-activeIndex * 100}vw, 0, 0)` }}
+      >
+        {isDeck ? (
+          <>
+            <DeckOpportunity />
+            <DeckDunlevyFit />
+            <DeckKariLayer />
+            <DeckBoardAsk />
+          </>
+        ) : (
+          <>
+            <ExecutiveOpening />
+            <InvestorThesis />
+            <DunlevyFit />
+            <KariLayer />
+            <RiskControls />
+            <BoardAsk />
+          </>
+        )}
       </main>
       <div className="deck-controls" aria-label="Slide controls">
         <button type="button" onClick={() => goTo(activeIndex - 1)} disabled={activeIndex === 0} aria-label="Previous slide">
           Prev
         </button>
-        <span>{activeIndex + 1} / {sections.length}</span>
+        <span>{activeIndex + 1} / {activeSections.length}</span>
         <button
           type="button"
           onClick={() => goTo(activeIndex + 1)}
-          disabled={activeIndex === sections.length - 1}
+          disabled={activeIndex === activeSections.length - 1}
           aria-label="Next slide"
         >
           Next
